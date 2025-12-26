@@ -3,171 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>General Ledger | Professional Accounting System</title>
+    <title>General Ledger Professional | Global Statement</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
         }
+
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        
+        .accounting-font { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+        
         @media print {
             .no-print { display: none !important; }
-            body { background: white; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #e2e8f0 !important; }
+            body { background-color: white !important; padding: 0 !important; }
+            .print-container { width: 100% !important; max-width: none !important; box-shadow: none !important; border: none !important; }
+            .print-header { display: flex !important; margin-bottom: 2rem; border-bottom: 2px solid #000; padding-bottom: 1rem; }
+            table { font-size: 10pt !important; border-collapse: collapse !important; }
+            th { background-color: #f8fafc !important; color: black !important; border: 1px solid #cbd5e1 !important; }
+            td { border: 1px solid #e2e8f0 !important; }
         }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .balance-debit { background-color: #ecfdf5 !important; }
-        .balance-credit { background-color: #fef2f2 !important; }
-        .account-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+
+        .balance-col { background-color: #f8fafc; border-left: 2px solid #e2e8f0; }
+        .sticky-header th { position: sticky; top: 0; z-index: 10; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-7xl mx-auto">
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 p-3 rounded-lg text-white">
-                    <i data-lucide="file-text"></i>
+    <div class="max-w-7xl mx-auto print-container">
+        <header class="bg-slate-900 rounded-t-2xl p-8 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+            <div class="flex items-center gap-5">
+                <div class="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/20">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">الأستاذ العام - وضع المطور</h1>
-                    <p class="text-sm text-gray-500">Transaction-Level Statement with Cumulative Balance</p>
+                    <h1 class="text-3xl font-extrabold tracking-tight">General Ledger</h1>
+                    <p class="text-blue-300 text-sm font-medium uppercase tracking-widest">Transaction Statement & Cumulative Balance</p>
                 </div>
-            </div>
-            <button onclick="window.print()" class="no-print flex items-center gap-2 bg-gray-800 text-white px-6 py-2.5 rounded-lg hover:bg-black transition-all">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-                طباعة كشف الحساب
-            </button>
-        </div>
-
-        <div class="no-print bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
-            <div class="flex items-center gap-2 mb-6 border-b pb-4">
-                <i data-lucide="filter" class="text-blue-600 w-5 h-5"></i>
-                <h2 class="font-bold text-gray-700">محرك الفلاتر المتقدم</h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">الحساب الرئيسي</label>
-                    <select id="accountFilter" onchange="applyFilters()" class="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
-                        <option value="">كل الحسابات</option>
+            <div class="flex gap-3 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2.5 rounded-xl transition-all font-semibold">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Export PDF
+                </button>
+                <button class="bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-blue-600/30">
+                    Share Report
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-white p-6 border-x border-b border-slate-200 rounded-b-2xl shadow-sm">
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Account Holder</span>
+                <p id="summaryAccount" class="text-lg font-bold text-slate-800">Global Search</p>
+            </div>
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                <span class="text-xs font-bold text-emerald-600 uppercase">Total Debit</span>
+                <p id="totalDebit" class="text-2xl font-black text-emerald-700 leading-none mt-1">0.00</p>
+            </div>
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-100">
+                <span class="text-xs font-bold text-rose-600 uppercase">Total Credit</span>
+                <p id="totalCredit" class="text-2xl font-black text-rose-700 leading-none mt-1">0.00</p>
+            </div>
+            <div class="p-4 rounded-xl bg-blue-600 border border-blue-700 text-white">
+                <span class="text-xs font-bold text-blue-100 uppercase">Net Position</span>
+                <p id="finalBalance" class="text-2xl font-black leading-none mt-1 tracking-tight">0.00</p>
+            </div>
+        </div>
+
+        <div class="no-print bg-white rounded-2xl shadow-xl border border-slate-200 p-8 mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-8 w-1.5 bg-blue-600 rounded-full"></div>
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Report Configuration</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Master Account</label>
+                    <div class="relative">
+                        <select id="accountFilter" onchange="applyFilters()" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-700">
+                            <option value="">All Ledgers</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Business Party</label>
+                    <select id="partyFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <option value="">All Parties</option>
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">الطرف (عميل/مورد)</label>
-                    <select id="partyFilter" onchange="applyFilters()" class="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
-                        <option value="">كل الأطراف</option>
-                    </select>
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Date From</label>
+                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">من تاريخ</label>
-                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Date To</label>
+                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">إلى تاريخ</label>
-                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                <div class="flex items-end">
+                    <button onclick="resetFilters()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white p-6 rounded-xl border-r-4 border-green-500 shadow-sm">
-                <p class="text-sm text-gray-500 mb-1 font-bold">إجمالي المدين</p>
-                <h3 id="totalDebit" class="text-2xl font-bold text-green-600">0.00</h3>
-            </div>
-            <div class="bg-white p-6 rounded-xl border-r-4 border-red-500 shadow-sm">
-                <p class="text-sm text-gray-500 mb-1 font-bold">إجمالي الدائن</p>
-                <h3 id="totalCredit" class="text-2xl font-bold text-red-600">0.00</h3>
-            </div>
-            <div id="balanceCard" class="bg-white p-6 rounded-xl border-r-4 border-blue-500 shadow-sm">
-                <p class="text-sm text-gray-500 mb-1 font-bold">الرصيد الصافي</p>
-                <h3 id="finalBalance" class="text-2xl font-bold text-blue-600">0.00</h3>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-right">
-                    <thead class="bg-gray-800 text-white">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 sticky-header">
                         <tr>
-                            <th class="px-4 py-4 font-bold">التاريخ</th>
-                            <th class="px-4 py-4 font-bold">رقم السند</th>
-                            <th class="px-4 py-4 font-bold">الحساب</th>
-                            <th class="px-4 py-4 font-bold">الطرف</th>
-                            <th class="px-4 py-4 font-bold">البيان / الملاحظات</th>
-                            <th class="px-4 py-4 font-bold text-center">مدين (+)</th>
-                            <th class="px-4 py-4 font-bold text-center">دائن (-)</th>
-                            <th class="px-4 py-4 font-bold text-center bg-blue-700">الرصيد التراكمي</th>
+                            <th class="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-tighter">Date</th>
+                            <th class="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-tighter">Reference</th>
+                            <th class="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-tighter">Entity / Remark</th>
+                            <th class="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-tighter text-right">Debit (SAR)</th>
+                            <th class="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-tighter text-right">Credit (SAR)</th>
+                            <th class="px-6 py-5 text-xs font-black text-blue-600 uppercase tracking-tighter text-right balance-col">Running Balance</th>
                         </tr>
                     </thead>
-                    <tbody id="ledgerBody" class="divide-y divide-gray-100">
+                    <tbody id="ledgerBody" class="divide-y divide-slate-100">
                         </tbody>
-                    <tfoot class="bg-gray-50 font-bold border-t-2 border-gray-300">
-                        <tr id="ledgerFooter">
-                            </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
         
-        <div class="mt-8 flex justify-between items-center text-xs text-gray-400 no-print">
-            <p>نظام الأستاذ العام المتطور v2.0 | تم التوليد بواسطة Gemini AI</p>
-            <p id="timestamp"></p>
-        </div>
+        <footer class="mt-10 flex flex-col md:flex-row justify-between items-center px-4 gap-4 no-print">
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">System Status: Financial Core Online</p>
+            </div>
+            <p id="timestamp" class="text-xs font-medium text-slate-400"></p>
+        </footer>
     </div>
 
     <script>
-        // 1. بيانات محاكية (Mock Data) مطابقة لمتطلباتك
         const entries = [
-            { id: 1, date: '2025-12-01', voucher: 'JV-001', account: 'Cash - M', party: 'Sky Star Company', remarks: 'رصيد أول المدة', debit: 50000, credit: 0 },
-            { id: 2, date: '2025-12-02', voucher: 'PV-021', account: 'Cash - M', party: 'Supplier A', remarks: 'شراء أجهزة مكتبية', debit: 0, credit: 15000 },
-            { id: 3, date: '2025-12-05', voucher: 'RV-044', account: 'Cash - M', party: 'Customer B', remarks: 'دفعة من حساب عميل', debit: 25000, credit: 0 },
-            { id: 4, date: '2025-12-10', voucher: 'JV-002', account: 'Bank SSC', party: 'Sky Star Company', remarks: 'تحويل بنكي', debit: 100000, credit: 0 },
-            { id: 5, date: '2025-12-15', voucher: 'PV-022', account: 'Cash - M', party: 'Supplier A', remarks: 'مصاريف صيانة', debit: 0, credit: 2000 },
-            { id: 6, date: '2025-12-20', voucher: 'JV-003', account: 'Cash - M', party: 'Sky Star Company', remarks: 'سحب نقدي للعهدة', debit: 0, credit: 5000 }
+            { id: 1, date: '2025-12-01', voucher: 'JV/25/001', account: 'Cash Account', party: 'Sky Star Co.', remarks: 'Opening Balance Migration', debit: 50000.00, credit: 0 },
+            { id: 2, date: '2025-12-02', voucher: 'PV/25/021', account: 'Petty Cash', party: 'Stationary Supplier', remarks: 'Office Equipment Purchase', debit: 0, credit: 15250.75 },
+            { id: 3, date: '2025-12-05', voucher: 'RV/25/044', account: 'Cash Account', party: 'Al-Rajhi Client', remarks: 'Partial Invoice Settlement', debit: 25000.00, credit: 0 },
+            { id: 4, date: '2025-12-10', voucher: 'JV/25/002', account: 'Bank Albilad', party: 'Sky Star Co.', remarks: 'Inter-account Bank Transfer', debit: 110000.00, credit: 0 },
+            { id: 5, date: '2025-12-15', voucher: 'PV/25/022', account: 'Main Safe', party: 'Maintenance Services', remarks: 'Facility Support Services', debit: 0, credit: 2100.50 },
+            { id: 6, date: '2025-12-20', voucher: 'JV/25/003', account: 'Petty Cash', party: 'Sky Star Co.', remarks: 'Vault Cash Withdrawal', debit: 0, credit: 5000.00 }
         ];
 
-        // 2. تعبئة القوائم المنسدلة (Filters Initialization)
         function initFilters() {
             const accSelect = document.getElementById('accountFilter');
             const partySelect = document.getElementById('partyFilter');
-            
             const accounts = [...new Set(entries.map(e => e.account))];
             const parties = [...new Set(entries.map(e => e.party))];
-
             accounts.forEach(acc => accSelect.innerHTML += `<option value="${acc}">${acc}</option>`);
             parties.forEach(p => partySelect.innerHTML += `<option value="${p}">${p}</option>`);
-            
-            document.getElementById('timestamp').innerText = "تاريخ التقرير: " + new Date().toLocaleString('ar-EG');
+            document.getElementById('timestamp').innerText = "Generated on: " + new Date().toUTCString();
         }
 
-        // 3. تنسيق الأرقام
         const fmt = (num) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 
-        // 4. المحرك الرئيسي للفلاتر والحساب التراكمي
         function applyFilters() {
             const accVal = document.getElementById('accountFilter').value;
             const partyVal = document.getElementById('partyFilter').value;
             const dFrom = document.getElementById('dateFrom').value;
             const dTo = document.getElementById('dateTo').value;
+
+            document.getElementById('summaryAccount').innerText = accVal || "All Ledger Accounts";
 
             let filtered = entries.filter(e => {
                 return (!accVal || e.account === accVal) &&
@@ -176,55 +184,65 @@
                        (!dTo || e.date <= dTo);
             });
 
-            // ترتيب البيانات تاريخياً لضمان صحة الرصيد التراكمي
             filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             const tbody = document.getElementById('ledgerBody');
-            const tfoot = document.getElementById('ledgerFooter');
             tbody.innerHTML = '';
             
             let runningBalance = 0;
             let totalD = 0;
             let totalC = 0;
 
-            filtered.forEach((e, index) => {
+            filtered.forEach((e) => {
                 runningBalance += (e.debit - e.credit);
                 totalD += e.debit;
                 totalC += e.credit;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-blue-50 transition-colors">
-                        <td class="px-4 py-4 text-gray-600 font-mono">${e.date}</td>
-                        <td class="px-4 py-4 font-bold text-blue-600">${e.voucher}</td>
-                        <td class="px-4 py-4">${e.account}</td>
-                        <td class="px-4 py-4 text-gray-500">${e.party}</td>
-                        <td class="px-4 py-4 text-xs max-w-xs">${e.remarks}</td>
-                        <td class="px-4 py-4 text-center font-bold text-green-600">${e.debit > 0 ? fmt(e.debit) : '-'}</td>
-                        <td class="px-4 py-4 text-center font-bold text-red-600">${e.credit > 0 ? fmt(e.credit) : '-'}</td>
-                        <td class="px-4 py-4 text-center font-black balance-column ${runningBalance >= 0 ? 'text-blue-700' : 'text-red-700'}">${fmt(runningBalance)}</td>
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <span class="text-xs font-bold text-slate-800 tracking-tight">${e.date}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-blue-600">${e.voucher}</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${e.account}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-slate-700">${e.party}</span>
+                                <span class="text-xs italic text-slate-400">${e.remarks}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-right accounting-font font-bold text-emerald-600">
+                            ${e.debit > 0 ? fmt(e.debit) : '<span class="text-slate-200">-</span>'}
+                        </td>
+                        <td class="px-6 py-4 text-right accounting-font font-bold text-rose-600">
+                            ${e.credit > 0 ? fmt(e.credit) : '<span class="text-slate-200">-</span>'}
+                        </td>
+                        <td class="px-6 py-4 text-right accounting-font font-black balance-col ${runningBalance >= 0 ? 'text-slate-800' : 'text-rose-700'}">
+                            ${fmt(Math.abs(runningBalance))} 
+                            <span class="text-[10px] ml-1 opacity-50 font-sans uppercase">${runningBalance >= 0 ? 'Dr' : 'Cr'}</span>
+                        </td>
                     </tr>
                 `;
             });
 
-            // تحديث بطاقات الملخص
             document.getElementById('totalDebit').innerText = fmt(totalD);
             document.getElementById('totalCredit').innerText = fmt(totalC);
-            document.getElementById('finalBalance').innerText = fmt(runningBalance);
+            document.getElementById('finalBalance').innerText = fmt(Math.abs(runningBalance)) + (runningBalance >= 0 ? ' Dr' : ' Cr');
             
-            // تحديث تذييل الجدول
-            tfoot.innerHTML = `
-                <td colspan="5" class="px-4 py-4 text-left">الإجماليات المستخرجة</td>
-                <td class="px-4 py-4 text-center text-green-600">${fmt(totalD)}</td>
-                <td class="px-4 py-4 text-center text-red-600">${fmt(totalC)}</td>
-                <td class="px-4 py-4 text-center bg-blue-100 text-blue-800">${fmt(runningBalance)}</td>
-            `;
-
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-gray-400">لا توجد بيانات تطابق الفلاتر المحددة</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-300 font-bold uppercase tracking-widest">No matching ledger entries found</td></tr>`;
             }
         }
 
-        // تشغيل الوظائف عند التحميل
+        function resetFilters() {
+            document.querySelectorAll('select, input').forEach(el => el.value = '');
+            applyFilters();
+        }
+
         window.onload = () => {
             initFilters();
             applyFilters();
@@ -233,5 +251,3 @@
     </script>
 </body>
 </html>
-
-
