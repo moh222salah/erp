@@ -1,22 +1,39 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف الحساب التفصيلي | Transaction-Level Statement</title>
+    <title>General Ledger | Professional Accounting System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
         @media print {
             .no-print { display: none !important; }
-            .print-shadow-none { shadow: none !important; }
-            body { background-color: white; }
+            body { background: white; }
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #e2e8f0 !important; }
         }
-        .balance-column { background-color: #eff6ff !important; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .balance-debit { background-color: #ecfdf5 !important; }
+        .balance-credit { background-color: #fef2f2 !important; }
+        .account-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
