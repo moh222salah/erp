@@ -7,14 +7,14 @@
 
     <style>
         body {
-            font-family: "Tahoma", Arial, sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             background: #fff;
             color: #000;
         }
 
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
             font-size: 13px;
         }
 
@@ -25,15 +25,16 @@
         }
 
         th {
-            background-color: #e5e5e5;
+            background: #e5e5e5;
             font-weight: bold;
         }
 
-        .text-right { text-align: right; }
-        .text-left { text-align: left; }
+        .right { text-align: right; }
+        .bold { font-weight: bold; }
 
         @media print {
-            button { display: none; }
+            .no-print { display: none; }
+            body { margin: 0; }
         }
     </style>
 </head>
@@ -41,17 +42,17 @@
 <body class="p-6">
 
 <!-- ===== Header ===== -->
-<div class="flex justify-between items-start mb-6">
-    <div>
-        <h1 class="text-xl font-bold mb-2">كشف حساب</h1>
-        <p><strong>شركة:</strong> مؤسسة النجم السماوي للخدمات البيئية</p>
-        <p><strong>العميل:</strong> مطعم شاطر الشيف لتقديم الوجبات</p>
-        <p><strong>الفترة:</strong> 01-01-2024 إلى 31-12-2024</p>
+<div class="mb-6 flex justify-between">
+    <div class="right">
+        <h2 class="text-lg font-bold mb-2">كشف حساب</h2>
+        <p><b>الشركة:</b> مؤسسة النجم السماوي للخدمات البيئية</p>
+        <p><b>العميل:</b> مطعم شاطر الشيف لتقديم الوجبات</p>
+        <p><b>الفترة:</b> 01-01-2024 إلى 31-12-2024</p>
     </div>
 
-    <div class="text-left">
-        <p><strong>الرقم الضريبي:</strong> 311506514500003</p>
-        <p><strong>تاريخ الطباعة:</strong> <span id="printDate"></span></p>
+    <div class="right">
+        <p><b>الرقم الضريبي:</b> 311506514500003</p>
+        <p><b>تاريخ الطباعة:</b> <span id="printDate"></span></p>
     </div>
 </div>
 
@@ -62,94 +63,34 @@
             <th>#</th>
             <th>تاريخ</th>
             <th>مرجع</th>
-            <th>ملاحظات</th>
+            <th class="right">البيان</th>
             <th>مدين</th>
             <th>دائن</th>
-            <th>الرصيد (مدين - دائن)</th>
+            <th>الرصيد</th>
         </tr>
     </thead>
+
     <tbody id="ledgerBody"></tbody>
 
     <tfoot id="ledgerFooter"></tfoot>
 </table>
 
-<div class="mt-6 flex justify-between">
+<!-- ===== Footer ===== -->
+<div class="mt-10 flex justify-between">
     <div>المحاسب</div>
     <div>الإدارة المالية</div>
 </div>
 
-<button onclick="window.print()" class="mt-6 px-6 py-2 bg-gray-800 text-white rounded">
+<button onclick="window.print()" class="no-print mt-6 px-6 py-2 bg-gray-800 text-white rounded">
     طباعة
 </button>
 
 <script>
 const entries = [
-    { date: '2024-07-01', ref: 'ACC-SINV-2024-03457', note: 'Sales Invoice', debit: 1380, credit: 0 },
-    { date: '2024-07-09', ref: 'ACC-JV-2024-04727', note: 'Journal Entry', debit: 0, credit: 1380 },
-    { date: '2024-10-01', ref: 'ACC-SINV-2024-05028-1', note: 'Sales Invoice', debit: 460, credit: 0 },
-    { date: '2024-11-01', ref: 'ACC-SINV-2024-05517', note: 'Sales Invoice', debit: 460, credit: 0 },
+    { date: '2024-07-01', ref: 'ACC-SINV-2024-03457', note: 'فاتورة مبيعات', debit: 1380, credit: 0 },
+    { date: '2024-07-09', ref: 'ACC-JV-2024-04727', note: 'قيد يومية', debit: 0, credit: 1380 },
+    { date: '2024-10-01', ref: 'ACC-SINV-2024-05028-1', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
+    { date: '2024-11-01', ref: 'ACC-SINV-2024-05517', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
     { date: '2024-11-04', ref: 'Payment Entry 002968', note: 'سند قبض', debit: 0, credit: 460 },
-    { date: '2024-12-01', ref: 'ACC-SINV-2024-06020', note: 'Sales Invoice', debit: 460, credit: 0 },
-    { date: '2024-12-05', ref: 'ACC-JV-2024-10705', note: 'Journal Entry', debit: 0, credit: 920 },
-];
-
-let openingBalance = 0;
-let runningBalance = openingBalance;
-let totalDebit = 0;
-let totalCredit = 0;
-
-const body = document.getElementById("ledgerBody");
-
-// Opening Row
-body.innerHTML += `
-<tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td class="font-bold">Opening</td>
-    <td>0.00</td>
-    <td>0.00</td>
-    <td>${openingBalance.toFixed(2)}</td>
-</tr>
-`;
-
-entries.forEach((e, i) => {
-    runningBalance += (e.debit - e.credit);
-    totalDebit += e.debit;
-    totalCredit += e.credit;
-
-    body.innerHTML += `
-    <tr>
-        <td>${i + 1}</td>
-        <td>${e.date}</td>
-        <td>${e.ref}</td>
-        <td>${e.note}</td>
-        <td>${e.debit.toFixed(2)}</td>
-        <td>${e.credit.toFixed(2)}</td>
-        <td>${runningBalance.toFixed(2)}</td>
-    </tr>
-    `;
-});
-
-// Footer (Total + Closing)
-document.getElementById("ledgerFooter").innerHTML = `
-<tr class="font-bold">
-    <td colspan="4">الإجمالي</td>
-    <td>${totalDebit.toFixed(2)}</td>
-    <td>${totalCredit.toFixed(2)}</td>
-    <td>${(totalDebit - totalCredit).toFixed(2)}</td>
-</tr>
-<tr class="font-bold">
-    <td colspan="4">Closing (Opening + Total)</td>
-    <td>${totalDebit.toFixed(2)}</td>
-    <td>${totalCredit.toFixed(2)}</td>
-    <td>${runningBalance.toFixed(2)}</td>
-</tr>
-`;
-
-document.getElementById("printDate").innerText =
-    new Date().toLocaleString('ar-SA');
-</script>
-
-</body>
-</html>
+    { date: '2024-12-01', ref: 'ACC-SINV-2024-06020', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
+    { date: '2024-12-05', ref: 'ACC-JV-2
