@@ -1,246 +1,155 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise General Ledger | SAP-Grade Financial Statement</title>
+    <title>كشف حساب</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-        
-        :root {
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --success: #059669;
-            --danger: #dc2626;
+        body {
+            font-family: "Tahoma", Arial, sans-serif;
+            background: #fff;
+            color: #000;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .mono { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.02em; }
-        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 6px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #e5e5e5;
+            font-weight: bold;
+        }
+
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+
         @media print {
-            .no-print { display: none !important; }
-            body { background-color: white !important; padding: 0 !important; }
-            .print-container { width: 100% !important; max-width: none !important; border: none !important; shadow: none !important; }
-            table { font-size: 9pt !important; border-collapse: collapse !important; width: 100% !important; }
-            th { background-color: #f1f5f9 !important; color: black !important; border: 1px solid #cbd5e1 !important; }
-            td { border: 1px solid #e2e8f0 !important; }
+            button { display: none; }
         }
-
-        .running-balance-col { background-color: #f0f7ff; border-left: 2px solid #3b82f6; }
-        .opening-balance-row { background-color: #fdf2f8; border-bottom: 2px solid #f472b6; }
-        .sticky-header th { position: sticky; top: 0; z-index: 20; box-shadow: 0 1px 0 #e2e8f0; }
     </style>
 </head>
-<body class="p-4 md:p-8">
 
-    <div class="max-w-[1400px] mx-auto print-container">
-        <header class="bg-slate-900 rounded-t-2xl p-6 text-white flex flex-col md:flex-row justify-between items-center shadow-xl border-b border-white/10">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-500/30">
-                    <i data-lucide="shield-check" class="w-7 h-7"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight italic uppercase">General Ledger <span class="text-blue-400">Pro</span></h1>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Transaction-Level Financial Audit v4.0</p>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 no-print">
-                <button onclick="window.print()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-all">
-                    <i data-lucide="printer" class="w-4 h-4 text-blue-400"></i> Print Audit
-                </button>
-            </div>
-        </header>
+<body class="p-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-0 mb-8 bg-white border-x border-b border-slate-200 rounded-b-2xl shadow-sm overflow-hidden">
-            <div class="p-5 border-r border-slate-100">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Account</span>
-                <p id="summaryAccount" class="text-sm font-bold text-slate-700 mt-1 truncate">All Ledger Accounts</p>
-            </div>
-            <div class="p-5 border-r border-slate-100">
-                <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Total Debits</span>
-                <p id="totalDebit" class="text-xl font-black text-emerald-700 mt-1 mono">0.00</p>
-            </div>
-            <div class="p-5 border-r border-slate-100">
-                <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Total Credits</span>
-                <p id="totalCredit" class="text-xl font-black text-rose-700 mt-1 mono">0.00</p>
-            </div>
-            <div class="p-5 bg-blue-50">
-                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Closing Balance (SAR)</span>
-                <p id="finalBalance" class="text-xl font-black text-blue-800 mt-1 mono">0.00</p>
-            </div>
-        </div>
-
-        <div class="no-print bg-white rounded-xl shadow-md border border-slate-200 p-6 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase">Ledger Account</label>
-                    <select id="accountFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="">Select Account...</option>
-                    </select>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase">Entity Search</label>
-                    <input type="text" id="partyFilter" onkeyup="applyFilters()" placeholder="Filter Party/Customer..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase">From Date</label>
-                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase">To Date</label>
-                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-800 text-white sticky-header">
-                        <tr>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase">Posting Date</th>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase">Ref No / Doc Type</th>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase">Entity / Transaction Description</th>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase text-right">Debit (+)</th>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase text-right">Credit (-)</th>
-                            <th class="px-4 py-4 text-[10px] font-bold uppercase text-right bg-blue-700">Running Balance (SAR)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ledgerBody" class="text-[13px] divide-y divide-slate-100">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <footer class="mt-8 flex justify-between items-center text-[10px] font-bold text-slate-400 no-print uppercase tracking-widest">
-            <p>Certified Financial Statement | Oracle-Logic Engine</p>
-            <p id="timestamp"></p>
-        </footer>
+<!-- ===== Header ===== -->
+<div class="flex justify-between items-start mb-6">
+    <div>
+        <h1 class="text-xl font-bold mb-2">كشف حساب</h1>
+        <p><strong>شركة:</strong> مؤسسة النجم السماوي للخدمات البيئية</p>
+        <p><strong>العميل:</strong> مطعم شاطر الشيف لتقديم الوجبات</p>
+        <p><strong>الفترة:</strong> 01-01-2024 إلى 31-12-2024</p>
     </div>
 
-    <script>
-        // Simulated Database (Mirroring SQL tabGL Entry Structure)
-        const entries = [
-            { date: '2025-01-01', creation: '2025-01-01 08:00:00', voucher: 'JV-001', type: 'Journal Entry', account: 'Main Cash', entity: 'Internal: Opening Balance', remarks: 'Legacy System Migration', debit: 120000.00, credit: 0 },
-            { date: '2025-02-15', creation: '2025-02-15 10:30:00', voucher: 'SINV-022', type: 'Sales Invoice', account: 'Accounts Receivable', entity: 'Customer: Global Tech', remarks: 'Software Licensing Fees', debit: 45000.00, credit: 0 },
-            { date: '2025-02-15', creation: '2025-02-15 11:45:00', voucher: 'RV-102', type: 'Payment Entry', account: 'Main Cash', entity: 'Customer: Global Tech', remarks: 'Partial Payment Received', debit: 0, credit: 20000.00 },
-            { date: '2025-03-05', creation: '2025-03-05 09:00:00', voucher: 'PV-551', type: 'Purchase Invoice', account: 'Accounts Payable', entity: 'Supplier: Amazon Web Services', remarks: 'Cloud Infrastructure Subscription', debit: 0, credit: 1250.75 },
-            { date: '2025-03-10', creation: '2025-03-10 14:20:00', voucher: 'JV-088', type: 'Journal Entry', account: 'Main Cash', entity: 'Bank: Albilad', remarks: 'Cash Withdrawal for Petty Cash', debit: 0, credit: 5000.00 },
-            { date: '2025-12-26', creation: '2025-12-26 15:30:00', voucher: 'RV-999', type: 'Payment Entry', account: 'Main Cash', entity: 'Customer: Sky Star', remarks: 'Year-End Account Settlement', debit: 15000.00, credit: 0 }
-        ];
+    <div class="text-left">
+        <p><strong>الرقم الضريبي:</strong> 311506514500003</p>
+        <p><strong>تاريخ الطباعة:</strong> <span id="printDate"></span></p>
+    </div>
+</div>
 
-        function init() {
-            const accSelect = document.getElementById('accountFilter');
-            const accounts = [...new Set(entries.map(e => e.account))];
-            accounts.forEach(acc => accSelect.innerHTML += `<option value="${acc}">${acc}</option>`);
-            document.getElementById('timestamp').innerText = `Report Timestamp: ${new Date().toLocaleString()}`;
-            applyFilters();
-        }
+<!-- ===== Table ===== -->
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>تاريخ</th>
+            <th>مرجع</th>
+            <th>ملاحظات</th>
+            <th>مدين</th>
+            <th>دائن</th>
+            <th>الرصيد (مدين - دائن)</th>
+        </tr>
+    </thead>
+    <tbody id="ledgerBody"></tbody>
 
-        const fmt = (num) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+    <tfoot id="ledgerFooter"></tfoot>
+</table>
 
-        function applyFilters() {
-            const accVal = document.getElementById('accountFilter').value;
-            const partyVal = document.getElementById('partyFilter').value.toLowerCase();
-            const dFrom = document.getElementById('dateFrom').value;
-            const dTo = document.getElementById('dateTo').value;
+<div class="mt-6 flex justify-between">
+    <div>المحاسب</div>
+    <div>الإدارة المالية</div>
+</div>
 
-            document.getElementById('summaryAccount').innerText = accVal || "Consolidated - All Accounts";
+<button onclick="window.print()" class="mt-6 px-6 py-2 bg-gray-800 text-white rounded">
+    طباعة
+</button>
 
-            // 1. Calculate Opening Balance Logic
-            let openingBalance = 0;
-            if (dFrom) {
-                openingBalance = entries.reduce((acc, curr) => {
-                    if (curr.date < dFrom && (!accVal || curr.account === accVal)) {
-                        return acc + (curr.debit - curr.credit);
-                    }
-                    return acc;
-                }, 0);
-            }
+<script>
+const entries = [
+    { date: '2024-07-01', ref: 'ACC-SINV-2024-03457', note: 'Sales Invoice', debit: 1380, credit: 0 },
+    { date: '2024-07-09', ref: 'ACC-JV-2024-04727', note: 'Journal Entry', debit: 0, credit: 1380 },
+    { date: '2024-10-01', ref: 'ACC-SINV-2024-05028-1', note: 'Sales Invoice', debit: 460, credit: 0 },
+    { date: '2024-11-01', ref: 'ACC-SINV-2024-05517', note: 'Sales Invoice', debit: 460, credit: 0 },
+    { date: '2024-11-04', ref: 'Payment Entry 002968', note: 'سند قبض', debit: 0, credit: 460 },
+    { date: '2024-12-01', ref: 'ACC-SINV-2024-06020', note: 'Sales Invoice', debit: 460, credit: 0 },
+    { date: '2024-12-05', ref: 'ACC-JV-2024-10705', note: 'Journal Entry', debit: 0, credit: 920 },
+];
 
-            // 2. Filter Main Content
-            let filtered = entries.filter(e => {
-                return (!accVal || e.account === accVal) &&
-                       (!partyVal || e.entity.toLowerCase().includes(partyVal) || e.remarks.toLowerCase().includes(partyVal)) &&
-                       (!dFrom || e.date >= dFrom) &&
-                       (!dTo || e.date <= dTo);
-            });
+let openingBalance = 0;
+let runningBalance = openingBalance;
+let totalDebit = 0;
+let totalCredit = 0;
 
-            // 3. Sorting (Anti-Aggregated Order)
-            filtered.sort((a, b) => {
-                if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-                return a.creation.localeCompare(b.creation);
-            });
+const body = document.getElementById("ledgerBody");
 
-            const tbody = document.getElementById('ledgerBody');
-            tbody.innerHTML = '';
-            
-            let runningBalance = openingBalance;
-            let totalD = 0;
-            let totalC = 0;
+// Opening Row
+body.innerHTML += `
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td class="font-bold">Opening</td>
+    <td>0.00</td>
+    <td>0.00</td>
+    <td>${openingBalance.toFixed(2)}</td>
+</tr>
+`;
 
-            // 4. Inject Opening Balance Row
-            if (dFrom) {
-                tbody.innerHTML += `
-                    <tr class="opening-balance-row font-bold">
-                        <td class="px-4 py-3 text-slate-400">${dFrom}</td>
-                        <td class="px-4 py-3 text-pink-600 uppercase italic">OBAL-PREV</td>
-                        <td class="px-4 py-3">OPENING BALANCE BROUGHT FORWARD</td>
-                        <td class="px-4 py-3 text-right">-</td>
-                        <td class="px-4 py-3 text-right">-</td>
-                        <td class="px-4 py-3 text-right mono running-balance-col">${fmt(runningBalance)}</td>
-                    </tr>
-                `;
-            }
+entries.forEach((e, i) => {
+    runningBalance += (e.debit - e.credit);
+    totalDebit += e.debit;
+    totalCredit += e.credit;
 
-            // 5. Build Transactional Rows
-            filtered.forEach((e) => {
-                runningBalance += (e.debit - e.credit);
-                totalD += e.debit;
-                totalC += e.credit;
+    body.innerHTML += `
+    <tr>
+        <td>${i + 1}</td>
+        <td>${e.date}</td>
+        <td>${e.ref}</td>
+        <td>${e.note}</td>
+        <td>${e.debit.toFixed(2)}</td>
+        <td>${e.credit.toFixed(2)}</td>
+        <td>${runningBalance.toFixed(2)}</td>
+    </tr>
+    `;
+});
 
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-all">
-                        <td class="px-4 py-4 font-semibold text-slate-500">${e.date}</td>
-                        <td class="px-4 py-4">
-                            <p class="font-black text-blue-600">${e.voucher}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase">${e.type}</p>
-                        </td>
-                        <td class="px-4 py-4">
-                            <p class="font-bold text-slate-800">${e.entity}</p>
-                            <p class="text-[11px] text-slate-500 italic">${e.remarks}</p>
-                        </td>
-                        <td class="px-4 py-4 text-right mono font-bold text-emerald-600 italic">
-                            ${e.debit > 0 ? fmt(e.debit) : '<span class="text-slate-200">0.00</span>'}
-                        </td>
-                        <td class="px-4 py-4 text-right mono font-bold text-rose-600 italic">
-                            ${e.credit > 0 ? fmt(e.credit) : '<span class="text-slate-200">0.00</span>'}
-                        </td>
-                        <td class="px-4 py-4 text-right mono font-black running-balance-col ${runningBalance >= 0 ? 'text-blue-800' : 'text-rose-800'}">
-                            ${fmt(Math.abs(runningBalance))} 
-                            <span class="text-[9px] opacity-40 font-sans">${runningBalance >= 0 ? 'DR' : 'CR'}</span>
-                        </td>
-                    </tr>
-                `;
-            });
+// Footer (Total + Closing)
+document.getElementById("ledgerFooter").innerHTML = `
+<tr class="font-bold">
+    <td colspan="4">الإجمالي</td>
+    <td>${totalDebit.toFixed(2)}</td>
+    <td>${totalCredit.toFixed(2)}</td>
+    <td>${(totalDebit - totalCredit).toFixed(2)}</td>
+</tr>
+<tr class="font-bold">
+    <td colspan="4">Closing (Opening + Total)</td>
+    <td>${totalDebit.toFixed(2)}</td>
+    <td>${totalCredit.toFixed(2)}</td>
+    <td>${runningBalance.toFixed(2)}</td>
+</tr>
+`;
 
-            // 6. Update KPI Dashboard
-            document.getElementById('totalDebit').innerText = fmt(totalD);
-            document.getElementById('totalCredit').innerText = fmt(totalC);
-            document.getElementById('finalBalance').innerText = fmt(Math.abs(runningBalance)) + (runningBalance >= 0 ? ' DR' : ' CR');
-            
-            if (filtered.length === 0 && !dFrom) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-300 font-bold uppercase tracking-widest">No matching transactions found in audit logs</td></tr>`;
-            }
-        }
+document.getElementById("printDate").innerText =
+    new Date().toLocaleString('ar-SA');
+</script>
 
-        window.onload = () => {
-            init();
-            lucide.createIcons();
-        };
-    </script>
 </body>
 </html>
