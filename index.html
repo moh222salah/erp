@@ -1,9 +1,12 @@
+
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف حساب | Account Statement</title>
+    <title>  Sky Star Account Statement </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -16,126 +19,182 @@
         }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        @media print {
-            .no-print { display: none !important; }
-            body { background-color: white !important; }
-            .print-border { border: 1px solid #e2e8f0 !important; }
+        /* تجميل خانات الاختيار (Checkboxes) */
+        input[type="checkbox"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            cursor: pointer;
+            accent-color: #1e293b;
         }
 
-        .table-row-hover:hover { background-color: #f1f5f9; }
-        .voucher-badge { background-color: #e2e8f0; color: #475569; }
+        .filter-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; padding: 0 !important; }
+            .print-container { max-width: 100% !important; border: none !important; }
+        }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-[1150px] mx-auto">
+    <div class="max-w-[1250px] mx-auto print-container">
         
-        <header class="bg-white border-b-4 border-slate-800 p-8 flex flex-col md:flex-row justify-between items-center shadow-sm rounded-t-xl">
+        <header class="bg-white border-b-2 border-slate-200 p-6 flex flex-col md:flex-row justify-between items-center rounded-t-xl">
             <div class="flex items-center gap-4">
-                <div class="bg-slate-800 p-3 rounded-lg text-white">
-                    <i data-lucide="layout-list" class="w-8 h-8"></i>
+                <div class="bg-slate-900 p-2.5 rounded-lg text-white">
+                    <i data-lucide="shield-check" class="w-7 h-7"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-800">كشف الحساب الموحد</h1>
-                    <p class="text-slate-500 text-[11px] font-medium uppercase tracking-wider">Accounting Statement | Consolidated by Voucher</p>
+                    <h1 class="text-xl font-bold text-slate-800">Sky Star</h1>
+                    <p class="text-slate-400 text-[10px] font-mono tracking-tighter uppercase">Financial Ledger System | Accounting</p>
                 </div>
             </div>
-            <button onclick="window.print()" class="no-print flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md">
-                <i data-lucide="printer" class="w-4 h-4"></i> طباعة الكشف
-            </button>
+            <div class="flex gap-3 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md text-xs font-bold transition-all border border-slate-300">
+                    <i data-lucide="printer" class="w-4 h-4"></i> طباعة
+                </button>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 bg-white border-x border-b border-slate-200 shadow-sm mb-6">
-            <div class="p-6 border-l border-slate-100 text-center">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">إجمالي المدين (+)</span>
-                <p id="totalDr" class="text-2xl font-black text-slate-800 mono">0.00</p>
-            </div>
-            <div class="p-6 border-l border-slate-100 text-center">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">إجمالي الدائن (-)</span>
-                <p id="totalCr" class="text-2xl font-black text-slate-800 mono">0.00</p>
-            </div>
-            <div class="p-6 bg-slate-50 text-center">
-                <span class="text-[10px] font-bold text-blue-600 uppercase block mb-1">الرصيد النهائي</span>
-                <p id="finalBal" class="text-2xl font-black text-blue-900 mono">0.00</p>
-            </div>
-        </div>
-
-        <div class="no-print bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-600">الجهة المالية</label>
-                    <select id="partyFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-400">
-                        <option value="">جميع الحسابات</option>
+        <div class="no-print bg-white border-x border-b border-slate-200 p-6 shadow-sm mb-6 rounded-b-xl">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">الطرف المعني (الجهة)</label>
+                    <select id="partyFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-xs outline-none focus:ring-1 focus:ring-slate-400">
+                        <option value="">اختر الجهة المالية...</option>
                     </select>
                 </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-600">من تاريخ</label>
-                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-slate-400">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">من تاريخ</label>
+                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-xs">
                 </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-600">إلى تاريخ</label>
-                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-slate-400">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">إلى تاريخ</label>
+                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-xs">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">نمط العرض</label>
+                    <div class="w-full bg-slate-100 border border-slate-200 rounded p-2 text-xs font-bold text-slate-600 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i> Categorize by Voucher
+                    </div>
+                </div>
+            </div>
+
+            <hr class="mb-6 border-slate-100">
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-8">
+                <div class="flex flex-col gap-3">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" checked>
+                        <span class="filter-label">ضع في اعتبارك أبعاد المحاسبة</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox">
+                        <span class="filter-label">إضافة أعمدة في عملة المعاملات</span>
+                    </label>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox">
+                        <span class="filter-label">Show Opening Entries</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" checked>
+                        <span class="filter-label">Show Remarks</span>
+                    </label>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" checked>
+                        <span class="filter-label">تضمين إدخالات دفتر افتراضي</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" checked>
+                        <span class="filter-label">Ignore System Generated Credit / Debit Notes</span>
+                    </label>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox">
+                        <span class="filter-label">Show Cancelled Entries</span>
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" checked>
+                        <span class="filter-label">Ignore Exchange Rate Revaluation Journals</span>
+                    </label>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 border border-slate-200 rounded-lg shadow-sm">
+                <span class="text-[10px] font-bold text-emerald-600 block mb-1">إجمالي المدين المجمع</span>
+                <p id="totalDr" class="text-xl font-bold text-slate-800 mono">0.00</p>
+            </div>
+            <div class="bg-white p-4 border border-slate-200 rounded-lg shadow-sm">
+                <span class="text-[10px] font-bold text-rose-600 block mb-1">إجمالي الدائن المجمع</span>
+                <p id="totalCr" class="text-xl font-bold text-slate-800 mono">0.00</p>
+            </div>
+            <div class="bg-slate-900 p-4 rounded-lg shadow-md text-white">
+                <span class="text-[10px] font-bold opacity-70 block mb-1">الرصيد النهائي (الصافي)</span>
+                <p id="finalBal" class="text-xl font-bold mono">0.00</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="bg-slate-800 text-white">
-                        <th class="p-4 text-[11px] font-bold uppercase">رقم السند</th>
-                        <th class="p-4 text-[11px] font-bold uppercase">التاريخ</th>
-                        <th class="p-4 text-[11px] font-bold uppercase">النوع</th>
-                        <th class="p-4 text-[11px] font-bold uppercase text-left">المدين</th>
-                        <th class="p-4 text-[11px] font-bold uppercase text-left">الدائن</th>
-                        <th class="p-4 text-[11px] font-bold uppercase text-left bg-slate-700">الرصيد</th>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider">رقم السند</th>
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider">التاريخ</th>
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider">البيان</th>
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider text-left">مدين</th>
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider text-left">دائن</th>
+                        <th class="p-4 text-[10px] font-bold uppercase tracking-wider text-left bg-slate-100/50">الرصيد</th>
                     </tr>
                 </thead>
-                <tbody id="statementBody" class="text-sm divide-y divide-slate-100">
+                <tbody id="statementBody" class="text-[13px] divide-y divide-slate-100">
                     </tbody>
             </table>
         </div>
 
-        <footer class="mt-8 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <p>نظام التقارير المالية الموحدة</p>
-            <p id="ts"></p>
-        </footer>
     </div>
 
     <script>
-        // داتابيس افتراضية
         const entries = [
-            { voucher: 'INV-201', date: '2025-03-01', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 5000, cr: 0 },
-            { voucher: 'INV-201', date: '2025-03-01', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 1200, cr: 0 },
-            { voucher: 'PAY-77', date: '2025-03-05', party: 'مؤسسة الحلول الذكية', type: 'تحصيل', dr: 0, cr: 3000 },
-            { voucher: 'JV-99', date: '2025-03-10', party: 'شركة الأمل', type: 'تسوية', dr: 450, cr: 0 },
-            { voucher: 'INV-202', date: '2025-03-15', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 2000, cr: 0 }
+            { voucher: 'INV-SK-001', date: '2025-11-29', party: 'عميل: سكاي ستار', type: 'فاتورة مبيعات', dr: 15400, cr: 0, remarks: 'توريد خدمات برمجية' },
+            { voucher: 'INV-SK-001', date: '2025-11-29', party: 'عميل: سكاي ستار', type: 'فاتورة مبيعات', dr: 4600, cr: 0, remarks: 'دعم فني إضافي' },
+            { voucher: 'PAY-SK-90', date: '2025-12-15', party: 'عميل: سكاي ستار', type: 'سند قبض', dr: 0, cr: 10000, remarks: 'دفعة من الحساب' },
+            { voucher: 'JV-SK-22', date: '2025-12-29', party: 'مورد: تقنية العرب', type: 'قيد تسوية', dr: 500, cr: 0, remarks: 'تسوية فروقات' }
         ];
 
         function init() {
             const parties = [...new Set(entries.map(e => e.party))];
             const sel = document.getElementById('partyFilter');
             parties.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
-            document.getElementById('ts').innerText = `تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')}`;
             applyFilters();
             lucide.createIcons();
         }
 
-        const fmt = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n);
+        const format = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n);
 
         function applyFilters() {
             const party = document.getElementById('partyFilter').value;
             const from = document.getElementById('dateFrom').value;
             const to = document.getElementById('dateTo').value;
 
-            // 1. فلترة التاريخ والجهة
             let filtered = entries.filter(e => {
-                return (!party || e.party === party) &&
-                       (!from || e.date >= from) &&
-                       (!to || e.date <= to);
+                return (!party || e.party === party) && (!from || e.date >= from) && (!to || e.date <= to);
             });
 
-            // 2. تجميع البيانات حسب السند (Consolidation)
+            // Consolidation logic
             const consolidated = filtered.reduce((acc, curr) => {
                 if (!acc[curr.voucher]) {
                     acc[curr.voucher] = { ...curr };
@@ -147,13 +206,10 @@
             }, {});
 
             const displayData = Object.values(consolidated).sort((a,b) => new Date(a.date) - new Date(b.date));
-            
             const tbody = document.getElementById('statementBody');
             tbody.innerHTML = '';
             
-            let runningBal = 0;
-            let sumDr = 0;
-            let sumCr = 0;
+            let runningBal = 0, sumDr = 0, sumCr = 0;
 
             displayData.forEach(row => {
                 runningBal += (row.dr - row.cr);
@@ -161,23 +217,26 @@
                 sumCr += row.cr;
 
                 tbody.innerHTML += `
-                    <tr class="table-row-hover transition-colors">
-                        <td class="p-4"><span class="voucher-badge px-2 py-1 rounded text-[10px] font-bold mono">${row.voucher}</span></td>
-                        <td class="p-4 text-slate-500 font-medium text-xs">${row.date}</td>
-                        <td class="p-4 font-bold text-slate-700">${row.type}</td>
-                        <td class="p-4 text-left mono font-bold text-emerald-600">${fmt(row.dr)}</td>
-                        <td class="p-4 text-left mono font-bold text-rose-600">${fmt(row.cr)}</td>
-                        <td class="p-4 text-left mono font-black bg-slate-50/50">
-                            ${fmt(Math.abs(runningBal))}
-                            <span class="text-[9px] opacity-40">${runningBal >=0 ? 'DR' : 'CR'}</span>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-bold text-slate-700 mono text-[11px]">${row.voucher}</td>
+                        <td class="p-4 text-slate-500 font-medium text-[11px]">${row.date}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${row.remarks}</div>
+                            <div class="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">${row.type}</div>
+                        </td>
+                        <td class="p-4 text-left mono font-bold text-emerald-700">${format(row.dr)}</td>
+                        <td class="p-4 text-left mono font-bold text-rose-700">${format(row.cr)}</td>
+                        <td class="p-4 text-left mono font-black bg-slate-50 text-slate-900">
+                            ${format(Math.abs(runningBal))}
+                            <span class="text-[8px] opacity-40 font-sans">${runningBal >=0 ? 'DR' : 'CR'}</span>
                         </td>
                     </tr>
                 `;
             });
 
-            document.getElementById('totalDr').innerText = fmt(sumDr);
-            document.getElementById('totalCr').innerText = fmt(sumCr);
-            document.getElementById('finalBal').innerText = fmt(Math.abs(runningBal)) + (runningBal >= 0 ? ' DR' : ' CR');
+            document.getElementById('totalDr').innerText = format(sumDr);
+            document.getElementById('totalCr').innerText = format(sumCr);
+            document.getElementById('finalBal').innerText = format(Math.abs(runningBal)) + (runningBal >= 0 ? ' DR' : ' CR');
         }
 
         window.onload = init;
