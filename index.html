@@ -2,95 +2,227 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشف حساب</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف حساب | Account Statement</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body {
-            font-family: Tahoma, Arial, sans-serif;
-            background: #fff;
-            color: #000;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th, td {
-            border: 1px solid #999;
-            padding: 6px;
-            text-align: center;
-        }
-
-        th {
-            background: #e5e5e5;
-            font-weight: bold;
-        }
-
-        .right { text-align: right; }
-        .bold { font-weight: bold; }
-
+        body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
         @media print {
-            .no-print { display: none; }
-            body { margin: 0; }
+            .no-print { display: none !important; }
+            body { background-color: white !important; padding: 0 !important; }
+            .print-container { width: 100% !important; max-width: none !important; border: none !important; }
+            .running-balance-col { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
         }
+
+        .running-balance-col { background-color: #f0f7ff; border-right: 2px solid #3b82f6; }
+        .opening-balance-row { background-color: #fff7ed; border-bottom: 2px solid #fb923c; }
     </style>
 </head>
+<body class="p-4 md:p-8">
 
-<body class="p-6">
+    <div class="max-w-[1200px] mx-auto print-container">
+        <header class="bg-white border-2 border-slate-900 rounded-t-2xl p-6 flex flex-col md:flex-row justify-between items-center shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-900 p-3 rounded-xl">
+                    <i data-lucide="file-text" class="w-8 h-8 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-900">كشف حساب تفصيلي</h1>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Account Statement - Financial Summary</p>
+                </div>
+            </div>
+            
+            <div class="text-left mt-4 md:mt-0 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-lg">
+                    <i data-lucide="printer" class="w-4 h-4"></i> طباعة الكشف
+                </button>
+            </div>
+        </header>
 
-<!-- ===== Header ===== -->
-<div class="mb-6 flex justify-between">
-    <div class="right">
-        <h2 class="text-lg font-bold mb-2">كشف حساب</h2>
-        <p><b>الشركة:</b> مؤسسة النجم السماوي للخدمات البيئية</p>
-        <p><b>العميل:</b> مطعم شاطر الشيف لتقديم الوجبات</p>
-        <p><b>الفترة:</b> 01-01-2024 إلى 31-12-2024</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 bg-white border-x border-b border-slate-200 rounded-b-2xl shadow-sm overflow-hidden mb-8">
+            <div class="p-6 border-l border-slate-100 bg-slate-50/50">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">بيانات العميل / الجهة</span>
+                <h2 id="summaryParty" class="text-lg font-bold text-blue-900">يرجى اختيار جهة...</h2>
+                <p class="text-xs text-slate-500 mt-1">الرقم الضريبي: <span class="mono">310002345600003</span></p>
+            </div>
+            <div class="p-6 border-l border-slate-100 flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[11px] font-bold text-emerald-600 uppercase">إجمالي مدين (+)</span>
+                    <p id="totalDebit" class="text-xl font-black text-slate-800 mono">0.00</p>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[11px] font-bold text-rose-600 uppercase">إجمالي دائن (-)</span>
+                    <p id="totalCredit" class="text-xl font-black text-slate-800 mono">0.00</p>
+                </div>
+            </div>
+            <div class="p-6 bg-blue-900 text-white flex flex-col justify-center">
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">الرصيد المستحق (ريال)</span>
+                <p id="finalBalance" class="text-3xl font-black mt-1 mono">0.00</p>
+            </div>
+        </div>
+
+        <div class="no-print bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-right">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-600">اختيار العميل / المورد</label>
+                    <select id="partyFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">كل الجهات</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-600">من تاريخ</label>
+                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-600">إلى تاريخ</label>
+                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse">
+                    <thead class="bg-slate-900 text-white">
+                        <tr>
+                            <th class="px-4 py-4 text-xs font-bold">التاريخ</th>
+                            <th class="px-4 py-4 text-xs font-bold">البيان / التفاصيل</th>
+                            <th class="px-4 py-4 text-xs font-bold">رقم المرجع</th>
+                            <th class="px-4 py-4 text-xs font-bold text-left">مدين (+)</th>
+                            <th class="px-4 py-4 text-xs font-bold text-left">دائن (-)</th>
+                            <th class="px-4 py-4 text-xs font-bold text-left bg-blue-800">الرصيد</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statementBody" class="text-[13px] divide-y divide-slate-100">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer class="mt-8 flex justify-between items-center text-[10px] font-bold text-slate-400 no-print uppercase tracking-widest">
+            <p>كشف حساب آلي - صادر من النظام المالي</p>
+            <p id="timestamp"></p>
+        </footer>
     </div>
 
-    <div class="right">
-        <p><b>الرقم الضريبي:</b> 311506514500003</p>
-        <p><b>تاريخ الطباعة:</b> <span id="printDate"></span></p>
-    </div>
-</div>
+    <script>
+        // بيانات تجريبية (الجهات والمبيعات)
+        const entries = [
+            { date: '2025-01-01', creation: '2025-01-01 08:00:00', voucher: 'OB-2025', type: 'رصيد افتتاحي', party: 'شركة سكاي ستار', remarks: 'رصيد مدور من العام السابق', debit: 5000.00, credit: 0 },
+            { date: '2025-02-10', creation: '2025-02-10 10:00:00', voucher: 'INV-1001', type: 'فاتورة مبيعات', party: 'شركة سكاي ستار', remarks: 'توريد أجهزة حاسب آلي', debit: 12000.00, credit: 0 },
+            { date: '2025-02-15', creation: '2025-02-15 11:00:00', voucher: 'PAY-505', type: 'سند قبض', party: 'شركة سكاي ستار', remarks: 'دفعة نقداً من الحساب', debit: 0, credit: 7000.00 },
+            { date: '2025-03-01', creation: '2025-03-01 09:30:00', voucher: 'INV-1002', type: 'فاتورة مبيعات', party: 'مؤسسة الحلول التقنية', remarks: 'خدمات استشارية', debit: 3500.00, credit: 0 },
+            { date: '2025-12-20', creation: '2025-12-20 15:00:00', voucher: 'PAY-610', type: 'سند قبض', party: 'شركة سكاي ستار', remarks: 'تسوية نهاية العام', debit: 0, credit: 5000.00 }
+        ];
 
-<!-- ===== Table ===== -->
-<table>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>تاريخ</th>
-            <th>مرجع</th>
-            <th class="right">البيان</th>
-            <th>مدين</th>
-            <th>دائن</th>
-            <th>الرصيد</th>
-        </tr>
-    </thead>
+        function init() {
+            const partySelect = document.getElementById('partyFilter');
+            const parties = [...new Set(entries.map(e => e.party))];
+            parties.forEach(p => partySelect.innerHTML += `<option value="${p}">${p}</option>`);
+            document.getElementById('timestamp').innerText = `تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')}`;
+            applyFilters();
+        }
 
-    <tbody id="ledgerBody"></tbody>
+        const fmt = (num) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 
-    <tfoot id="ledgerFooter"></tfoot>
-</table>
+        function applyFilters() {
+            const partyVal = document.getElementById('partyFilter').value;
+            const dFrom = document.getElementById('dateFrom').value;
+            const dTo = document.getElementById('dateTo').value;
 
-<!-- ===== Footer ===== -->
-<div class="mt-10 flex justify-between">
-    <div>المحاسب</div>
-    <div>الإدارة المالية</div>
-</div>
+            document.getElementById('summaryParty').innerText = partyVal || "كافة العملاء والجهات";
 
-<button onclick="window.print()" class="no-print mt-6 px-6 py-2 bg-gray-800 text-white rounded">
-    طباعة
-</button>
+            // 1. الرصيد السابق
+            let openingBalance = 0;
+            if (dFrom) {
+                openingBalance = entries.reduce((acc, curr) => {
+                    if (curr.date < dFrom && (!partyVal || curr.party === partyVal)) {
+                        return acc + (curr.debit - curr.credit);
+                    }
+                    return acc;
+                }, 0);
+            }
 
-<script>
-const entries = [
-    { date: '2024-07-01', ref: 'ACC-SINV-2024-03457', note: 'فاتورة مبيعات', debit: 1380, credit: 0 },
-    { date: '2024-07-09', ref: 'ACC-JV-2024-04727', note: 'قيد يومية', debit: 0, credit: 1380 },
-    { date: '2024-10-01', ref: 'ACC-SINV-2024-05028-1', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
-    { date: '2024-11-01', ref: 'ACC-SINV-2024-05517', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
-    { date: '2024-11-04', ref: 'Payment Entry 002968', note: 'سند قبض', debit: 0, credit: 460 },
-    { date: '2024-12-01', ref: 'ACC-SINV-2024-06020', note: 'فاتورة مبيعات', debit: 460, credit: 0 },
-    { date: '2024-12-05', ref: 'ACC-JV-2
+            // 2. تصفية البيانات
+            let filtered = entries.filter(e => {
+                return (!partyVal || e.party === partyVal) &&
+                       (!dFrom || e.date >= dFrom) &&
+                       (!dTo || e.date <= dTo);
+            });
+
+            // 3. ترتيب
+            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const tbody = document.getElementById('statementBody');
+            tbody.innerHTML = '';
+            
+            let runningBalance = openingBalance;
+            let totalD = 0;
+            let totalC = 0;
+
+            // صف الرصيد الافتتاحي
+            if (dFrom || partyVal) {
+                tbody.innerHTML += `
+                    <tr class="opening-balance-row font-bold">
+                        <td class="px-4 py-3 text-slate-400">${dFrom || '---'}</td>
+                        <td class="px-4 py-3 text-orange-700">رصيد منقول سابق / Opening Balance</td>
+                        <td class="px-4 py-3 mono text-slate-400">PREV-BAL</td>
+                        <td class="px-4 py-3 text-left mono">-</td>
+                        <td class="px-4 py-3 text-left mono">-</td>
+                        <td class="px-4 py-3 text-left mono running-balance-col">${fmt(runningBalance)}</td>
+                    </tr>
+                `;
+            }
+
+            filtered.forEach((e) => {
+                runningBalance += (e.debit - e.credit);
+                totalD += e.debit;
+                totalC += e.credit;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-all">
+                        <td class="px-4 py-4 font-semibold text-slate-600">${e.date}</td>
+                        <td class="px-4 py-4">
+                            <p class="font-bold text-slate-800">${e.remarks}</p>
+                            <p class="text-[10px] text-blue-600 font-bold uppercase">${e.type}</p>
+                        </td>
+                        <td class="px-4 py-4 mono font-bold text-slate-500">${e.voucher}</td>
+                        <td class="px-4 py-4 text-left mono font-bold text-emerald-700">
+                            ${e.debit > 0 ? fmt(e.debit) : '<span class="text-slate-200">0.00</span>'}
+                        </td>
+                        <td class="px-4 py-4 text-left mono font-bold text-rose-700">
+                            ${e.credit > 0 ? fmt(e.credit) : '<span class="text-slate-200">0.00</span>'}
+                        </td>
+                        <td class="px-4 py-4 text-left mono font-black running-balance-col ${runningBalance >= 0 ? 'text-blue-900' : 'text-rose-900'}">
+                            ${fmt(Math.abs(runningBalance))} ${runningBalance >= 0 ? 'مدين' : 'دائن'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalDebit').innerText = fmt(totalD);
+            document.getElementById('totalCredit').innerText = fmt(totalC);
+            document.getElementById('finalBalance').innerText = fmt(Math.abs(runningBalance)) + (runningBalance >= 0 ? ' ريال' : ' ريال (له)');
+            
+            if (filtered.length === 0 && !dFrom) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-20 text-center text-slate-300 font-bold italic">لا توجد عمليات مسجلة لهذه الفترة</td></tr>`;
+            }
+        }
+
+        window.onload = () => {
+            init();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
