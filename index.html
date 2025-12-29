@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف حساب مجمع حسب السند</title>
+    <title>كشف حساب | Account Statement</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -11,100 +11,112 @@
         
         body { 
             font-family: 'IBM Plex Sans Arabic', sans-serif; 
-            background-color: #f1f5f9; 
-            color: #334155;
+            background-color: #f8fafc; 
+            color: #1e293b;
         }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .consolidated-row { border-right: 4px solid #6366f1; }
         
         @media print {
             .no-print { display: none !important; }
-            .print-shadow { shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            body { background-color: white !important; }
+            .print-border { border: 1px solid #e2e8f0 !important; }
         }
+
+        .table-row-hover:hover { background-color: #f1f5f9; }
+        .voucher-badge { background-color: #e2e8f0; color: #475569; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-    <div class="max-w-[1100px] mx-auto">
+    <div class="max-w-[1150px] mx-auto">
         
-        <header class="bg-slate-900 text-white p-8 rounded-t-2xl flex justify-between items-center shadow-lg">
+        <header class="bg-white border-b-4 border-slate-800 p-8 flex flex-col md:flex-row justify-between items-center shadow-sm rounded-t-xl">
             <div class="flex items-center gap-4">
-                <div class="bg-indigo-600 p-3 rounded-xl">
-                    <i data-lucide="layers" class="w-8 h-8"></i>
+                <div class="bg-slate-800 p-3 rounded-lg text-white">
+                    <i data-lucide="layout-list" class="w-8 h-8"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold">كشف الحساب المجمّع</h1>
-                    <p class="text-indigo-300 text-[10px] font-mono tracking-widest uppercase">Categorize by Voucher (Consolidated) v3.0</p>
+                    <h1 class="text-2xl font-bold text-slate-800">كشف الحساب الموحد</h1>
+                    <p class="text-slate-500 text-[11px] font-medium uppercase tracking-wider">Accounting Statement | Consolidated by Voucher</p>
                 </div>
             </div>
-            <div class="text-left no-print">
-                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 px-5 py-2 rounded-lg text-sm font-bold transition-all border border-slate-600">
-                    طباعة المستند
-                </button>
-            </div>
+            <button onclick="window.print()" class="no-print flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md">
+                <i data-lucide="printer" class="w-4 h-4"></i> طباعة الكشف
+            </button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-slate-200 border-x border-b border-slate-200 shadow-md">
-            <div class="bg-white p-6">
-                <span class="text-[10px] font-bold text-slate-400 block mb-1">إجمالي المدين المجمع</span>
-                <p id="totalDr" class="text-2xl font-black text-emerald-600 mono">0.00</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 bg-white border-x border-b border-slate-200 shadow-sm mb-6">
+            <div class="p-6 border-l border-slate-100 text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">إجمالي المدين (+)</span>
+                <p id="totalDr" class="text-2xl font-black text-slate-800 mono">0.00</p>
             </div>
-            <div class="bg-white p-6">
-                <span class="text-[10px] font-bold text-slate-400 block mb-1">إجمالي الدائن المجمع</span>
-                <p id="totalCr" class="text-2xl font-black text-rose-600 mono">0.00</p>
+            <div class="p-6 border-l border-slate-100 text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">إجمالي الدائن (-)</span>
+                <p id="totalCr" class="text-2xl font-black text-slate-800 mono">0.00</p>
             </div>
-            <div class="bg-indigo-50 p-6">
-                <span class="text-[10px] font-bold text-indigo-600 block mb-1">صافي الرصيد المستحق</span>
-                <p id="finalBal" class="text-2xl font-black text-indigo-900 mono">0.00</p>
+            <div class="p-6 bg-slate-50 text-center">
+                <span class="text-[10px] font-bold text-blue-600 uppercase block mb-1">الرصيد النهائي</span>
+                <p id="finalBal" class="text-2xl font-black text-blue-900 mono">0.00</p>
             </div>
         </div>
 
-        <div class="no-print bg-white mt-6 p-4 rounded-xl border border-slate-200 flex gap-4 items-center shadow-sm">
-            <i data-lucide="filter" class="w-5 h-5 text-slate-400"></i>
-            <select id="partyFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm w-full md:w-64 outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="">كل الجهات المالية</option>
-            </select>
-            <span class="text-xs text-slate-400 font-medium italic">يتم تجميع الحركات تلقائياً بناءً على رقم السند</span>
+        <div class="no-print bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-600">الجهة المالية</label>
+                    <select id="partyFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-400">
+                        <option value="">جميع الحسابات</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-600">من تاريخ</label>
+                    <input type="date" id="dateFrom" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-slate-400">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-600">إلى تاريخ</label>
+                    <input type="date" id="dateTo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-slate-400">
+                </div>
+            </div>
         </div>
 
-        <div class="mt-8 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
             <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="p-4 text-xs font-bold text-slate-500">رقم السند</th>
-                        <th class="p-4 text-xs font-bold text-slate-500">التاريخ</th>
-                        <th class="p-4 text-xs font-bold text-slate-500">نوع المستند</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 text-left">مدين (+)</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 text-left">دائن (-)</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 text-left bg-indigo-50">الرصيد</th>
+                    <tr class="bg-slate-800 text-white">
+                        <th class="p-4 text-[11px] font-bold uppercase">رقم السند</th>
+                        <th class="p-4 text-[11px] font-bold uppercase">التاريخ</th>
+                        <th class="p-4 text-[11px] font-bold uppercase">النوع</th>
+                        <th class="p-4 text-[11px] font-bold uppercase text-left">المدين</th>
+                        <th class="p-4 text-[11px] font-bold uppercase text-left">الدائن</th>
+                        <th class="p-4 text-[11px] font-bold uppercase text-left bg-slate-700">الرصيد</th>
                     </tr>
                 </thead>
-                <tbody id="statementBody" class="text-sm">
+                <tbody id="statementBody" class="text-sm divide-y divide-slate-100">
                     </tbody>
             </table>
         </div>
 
-        <footer class="mt-10 text-center">
-            <p class="text-[10px] text-slate-400 font-mono">FINANCIAL CONSOLIDATION ENGINE • GENERATED ON <span id="ts"></span></p>
+        <footer class="mt-8 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <p>نظام التقارير المالية الموحدة</p>
+            <p id="ts"></p>
         </footer>
     </div>
 
     <script>
-        // بيانات تجريبية (لاحظ تكرار نفس رقم السند في قيود مختلفة)
+        // داتابيس افتراضية
         const entries = [
-            { voucher: 'INV-900', date: '2025-03-01', party: 'شركة التقنية المتكاملة', type: 'فاتورة مبيعات', dr: 1000, cr: 0 },
-            { voucher: 'INV-900', date: '2025-03-01', party: 'شركة التقنية المتكاملة', type: 'فاتورة مبيعات', dr: 500, cr: 0 },
-            { voucher: 'PAY-112', date: '2025-03-05', party: 'شركة التقنية المتكاملة', type: 'سند قبض', dr: 0, cr: 1200 },
-            { voucher: 'INV-901', date: '2025-03-10', party: 'مؤسسة الأفق', type: 'فاتورة مبيعات', dr: 2000, cr: 0 },
-            { voucher: 'INV-901', date: '2025-03-10', party: 'مؤسسة الأفق', type: 'فاتورة مبيعات', dr: 300, cr: 0 },
-            { voucher: 'JV-55', date: '2025-03-12', party: 'شركة التقنية المتكاملة', type: 'قيد يومية', dr: 100, cr: 50 }
+            { voucher: 'INV-201', date: '2025-03-01', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 5000, cr: 0 },
+            { voucher: 'INV-201', date: '2025-03-01', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 1200, cr: 0 },
+            { voucher: 'PAY-77', date: '2025-03-05', party: 'مؤسسة الحلول الذكية', type: 'تحصيل', dr: 0, cr: 3000 },
+            { voucher: 'JV-99', date: '2025-03-10', party: 'شركة الأمل', type: 'تسوية', dr: 450, cr: 0 },
+            { voucher: 'INV-202', date: '2025-03-15', party: 'مؤسسة الحلول الذكية', type: 'مبيعات', dr: 2000, cr: 0 }
         ];
 
         function init() {
             const parties = [...new Set(entries.map(e => e.party))];
             const sel = document.getElementById('partyFilter');
             parties.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
-            document.getElementById('ts').innerText = new Date().toISOString();
+            document.getElementById('ts').innerText = `تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')}`;
             applyFilters();
             lucide.createIcons();
         }
@@ -112,23 +124,28 @@
         const fmt = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n);
 
         function applyFilters() {
-            const selectedParty = document.getElementById('partyFilter').value;
-            
-            // 1. تصفية البيانات أولاً حسب الجهة
-            let filtered = entries.filter(e => !selectedParty || e.party === selectedParty);
+            const party = document.getElementById('partyFilter').value;
+            const from = document.getElementById('dateFrom').value;
+            const to = document.getElementById('dateTo').value;
 
-            // 2. منطق التجميع (Consolidation Logic)
+            // 1. فلترة التاريخ والجهة
+            let filtered = entries.filter(e => {
+                return (!party || e.party === party) &&
+                       (!from || e.date >= from) &&
+                       (!to || e.date <= to);
+            });
+
+            // 2. تجميع البيانات حسب السند (Consolidation)
             const consolidated = filtered.reduce((acc, curr) => {
                 if (!acc[curr.voucher]) {
-                    acc[curr.voucher] = { ...curr }; // إنشاء سجل جديد للسند
+                    acc[curr.voucher] = { ...curr };
                 } else {
-                    acc[curr.voucher].dr += curr.dr; // جمع المدين
-                    acc[curr.voucher].cr += curr.cr; // جمع الدائن
+                    acc[curr.voucher].dr += curr.dr;
+                    acc[curr.voucher].cr += curr.cr;
                 }
                 return acc;
             }, {});
 
-            // تحويل الكائن إلى مصفوفة وعرضها
             const displayData = Object.values(consolidated).sort((a,b) => new Date(a.date) - new Date(b.date));
             
             const tbody = document.getElementById('statementBody');
@@ -144,15 +161,13 @@
                 sumCr += row.cr;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-indigo-50/30 transition-colors border-b border-slate-100 consolidated-row">
-                        <td class="p-4 font-bold text-indigo-600 mono text-xs">${row.voucher}</td>
-                        <td class="p-4 text-slate-500 text-xs">${row.date}</td>
-                        <td class="p-4">
-                            <span class="text-[10px] font-black uppercase text-slate-400 bg-slate-100 px-2 py-1 rounded">${row.type}</span>
-                        </td>
+                    <tr class="table-row-hover transition-colors">
+                        <td class="p-4"><span class="voucher-badge px-2 py-1 rounded text-[10px] font-bold mono">${row.voucher}</span></td>
+                        <td class="p-4 text-slate-500 font-medium text-xs">${row.date}</td>
+                        <td class="p-4 font-bold text-slate-700">${row.type}</td>
                         <td class="p-4 text-left mono font-bold text-emerald-600">${fmt(row.dr)}</td>
                         <td class="p-4 text-left mono font-bold text-rose-600">${fmt(row.cr)}</td>
-                        <td class="p-4 text-left mono font-black bg-indigo-50/50 text-indigo-900">
+                        <td class="p-4 text-left mono font-black bg-slate-50/50">
                             ${fmt(Math.abs(runningBal))}
                             <span class="text-[9px] opacity-40">${runningBal >=0 ? 'DR' : 'CR'}</span>
                         </td>
@@ -162,7 +177,7 @@
 
             document.getElementById('totalDr').innerText = fmt(sumDr);
             document.getElementById('totalCr').innerText = fmt(sumCr);
-            document.getElementById('finalBal').innerText = fmt(Math.abs(runningBal));
+            document.getElementById('finalBal').innerText = fmt(Math.abs(runningBal)) + (runningBal >= 0 ? ' DR' : ' CR');
         }
 
         window.onload = init;
