@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Ledger Report - ERPNext Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            border-bottom: 4px solid #4299e1;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header .subtitle {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .badge {
+            background: #4299e1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            padding: 25px 30px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-reset {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #f56565;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 25px 30px;
+            background: #edf2f7;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #4299e1;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card.debit {
+            border-left-color: #f56565;
+        }
+
+        .stat-card.credit {
+            border-left-color: #48bb78;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: #2d3748;
+            color: white;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+        }
+
+        thead th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        thead th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        .amount {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .amount.debit {
+            color: #f56565;
+        }
+
+        .amount.credit {
+            color: #48bb78;
+        }
+
+        .account-link {
+            color: #4299e1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .account-link:hover {
+            color: #2c5282;
+            text-decoration: underline;
+        }
+
+        .voucher-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .party-name {
+            color: #718096;
+            font-size: 13px;
+        }
+
+        .loading, .no-data {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .footer {
+            padding: 20px 30px;
+            background: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #4299e1;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        tbody tr {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .balance-row {
+            background: #edf2f7 !important;
+            font-weight: 700;
+            border-top: 3px solid #2d3748 !important;
+        }
+
+        .balance-row td {
+            padding: 16px !important;
+        }
+
+        .filter-info {
+            background: #bee3f8;
+            padding: 12px 20px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #2c5282;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                📊 General Ledger Report
+                <span class="badge">ERPNext API DEMO</span>
+            </h1>
+            <div class="subtitle">
+                Professional accounting ledger with real-time filtering | Python • Frappe • ERPNext Developer
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Company *</label>
+                    <select id="companyFilter" onchange="applyFilters()">
+                        <option value="">All Companies</option>
+                        <option value="Tech Solutions Ltd">Tech Solutions Ltd</option>
+                        <option value="Retail Corp">Retail Corp</option>
+                        <option value="Manufacturing Inc">Manufacturing Inc</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>From Date *</label>
+                    <input type="date" id="fromDate" value="2025-01-01" onchange="applyFilters()">
+                </div>
+
+                <div class="filter-group">
+                    <label>To Date *</label>
+                    <input type="date" id="toDate" value="2025-01-31" onchange="applyFilters()">
+                </div>
+
+                <div class="filter-group">
+                    <label>Account</label>
+                    <select id="accountFilter" onchange="applyFilters()">
+                        <option value="">All Accounts</option>
+                        <option value="Cash - USD">Cash - USD</option>
+                        <option value="Accounts Receivable">Accounts Receivable</option>
+                        <option value="Accounts Payable">Accounts Payable</option>
+                        <option value="Revenue">Revenue</option>
+                        <option value="Expenses">Expenses</option>
+                        <option value="Other Income">Other Income</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Party Type</label>
+                    <select id="partyTypeFilter" onchange="applyFilters()">
+                        <option value="">All Party Types</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Supplier">Supplier</option>
+                        <option value="Employee">Employee</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Party</label>
+                    <select id="partyFilter" onchange="applyFilters()">
+                        <option value="">All Parties</option>
+                        <option value="ABC Corporation">ABC Corporation</option>
+                        <option value="DEF Industries">DEF Industries</option>
+                        <option value="XYZ Suppliers">XYZ Suppliers</option>
+                        <option value="Employee Travel">Employee Travel</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Voucher Type</label>
+                    <select id="voucherTypeFilter" onchange="applyFilters()">
+                        <option value="">All Voucher Types</option>
+                        <option value="Journal Entry">Journal Entry</option>
+                        <option value="Sales Invoice">Sales Invoice</option>
+                        <option value="Purchase Invoice">Purchase Invoice</option>
+                        <option value="Payment Entry">Payment Entry</option>
+                        <option value="Expense Claim">Expense Claim</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Group By</label>
+                    <select id="groupByFilter" onchange="applyFilters()">
+                        <option value="">No Grouping</option>
+                        <option value="account">Group by Account</option>
+                        <option value="voucher">Group by Voucher Type</option>
+                        <option value="party">Group by Party</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Finance Book</label>
+                    <select id="financeBookFilter" onchange="applyFilters()">
+                        <option value="">Default Finance Book</option>
+                        <option value="Tax Book">Tax Book</option>
+                        <option value="Management Book">Management Book</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Include Default FB Entries</label>
+                    <select id="includeDefaultFilter" onchange="applyFilters()">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Show Cancelled Entries</label>
+                    <select id="showCancelledFilter" onchange="applyFilters()">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Show Opening Entries</label>
+                    <select id="showOpeningFilter" onchange="applyFilters()">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-info" id="filterInfo" style="display:none;">
+                ℹ️ <span id="filterInfoText"></span>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    🔍 Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="exportReport()">
+                    📥 Export to CSV
+                </button>
+                <button class="btn btn-reset" onclick="resetFilters()">
+                    🔄 Reset Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">Total Entries</div>
+                <div class="value" id="totalEntries">0</div>
+            </div>
+            <div class="stat-card debit">
+                <div class="label">Total Debit</div>
+                <div class="value" id="totalDebit">$0.00</div>
+            </div>
+            <div class="stat-card credit">
+                <div class="label">Total Credit</div>
+                <div class="value" id="totalCredit">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Net Balance</div>
+                <div class="value" id="netBalance">$0.00</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Account</th>
+                        <th>Voucher Type</th>
+                        <th>Voucher No</th>
+                        <th>Party</th>
+                        <th>Debit ($)</th>
+                        <th>Credit ($)</th>
+                        <th>Balance ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerTable">
+                    <tr><td colspan="8" class="loading">Click "Generate Report" to load ledger entries...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Developed by Python/ERPNext/Frappe Cloud Developer | 
+            <a href="https://github.com" target="_blank">View on GitHub</a> | 
+            Built with ❤️ for professional accounting systems
+        </div>
+    </div>
+
+    <script>
+        const fullData = [
+            {date: '2025-01-05', account: 'Cash - USD', voucherType: 'Journal Entry', voucherNo: 'JV-2025-001', party: 'Opening Balance', partyType: '', debit: 50000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-08', account: 'Accounts Receivable', voucherType: 'Sales Invoice', voucherNo: 'SINV-2025-0012', party: 'ABC Corporation', partyType: 'Customer', debit: 15000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-08', account: 'Revenue', voucherType: 'Sales Invoice', voucherNo: 'SINV-2025-0012', party: 'ABC Corporation', partyType: 'Customer', debit: 0, credit: 15000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-10', account: 'Cash - USD', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0045', party: 'ABC Corporation', partyType: 'Customer', debit: 15000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-10', account: 'Accounts Receivable', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0045', party: 'ABC Corporation', partyType: 'Customer', debit: 0, credit: 15000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-12', account: 'Accounts Payable', voucherType: 'Purchase Invoice', voucherNo: 'PINV-2025-0023', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 0, credit: 8000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-12', account: 'Expenses', voucherType: 'Purchase Invoice', voucherNo: 'PINV-2025-0023', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 8000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-15', account: 'Cash - USD', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0067', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 0, credit: 8000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-15', account: 'Accounts Payable', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0067', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 8000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-18', account: 'Cash - USD', voucherType: 'Journal Entry', voucherNo: 'JV-2025-003', party: 'Bank Interest', partyType: '', debit: 250, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-18', account: 'Other Income', voucherType: 'Journal Entry', voucherNo: 'JV-2025-003', party: 'Bank Interest', partyType: '', debit: 0, credit: 250, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-20', account: 'Accounts Receivable', voucherType: 'Sales Invoice', voucherNo: 'SINV-2025-0034', party: 'DEF Industries', partyType: 'Customer', debit: 22000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-20', account: 'Revenue', voucherType: 'Sales Invoice', voucherNo: 'SINV-2025-0034', party: 'DEF Industries', partyType: 'Customer', debit: 0, credit: 22000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-22', account: 'Expenses', voucherType: 'Expense Claim', voucherNo: 'EXP-2025-0011', party: 'Employee Travel', partyType: 'Employee', debit: 1500, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-22', account: 'Cash - USD', voucherType: 'Expense Claim', voucherNo: 'EXP-2025-0011', party: 'Employee Travel', partyType: 'Employee', debit: 0, credit: 1500, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-25', account: 'Cash - USD', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0088', party: 'DEF Industries', partyType: 'Customer', debit: 22000, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-25', account: 'Accounts Receivable', voucherType: 'Payment Entry', voucherNo: 'PAY-2025-0088', party: 'DEF Industries', partyType: 'Customer', debit: 0, credit: 22000, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-28', account: 'Expenses', voucherType: 'Purchase Invoice', voucherNo: 'PINV-2025-0055', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 3500, credit: 0, company: 'Tech Solutions Ltd'},
+            {date: '2025-01-28', account: 'Accounts Payable', voucherType: 'Purchase Invoice', voucherNo: 'PINV-2025-0055', party: 'XYZ Suppliers', partyType: 'Supplier', debit: 0, credit: 3500, company: 'Tech Solutions Ltd'}
+        ];
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        function getFilteredData() {
+            const company = document.getElementById('companyFilter').value;
+            const account = document.getElementById('accountFilter').value;
+            const partyType = document.getElementById('partyTypeFilter').value;
+            const party = document.getElementById('partyFilter').value;
+            const voucherType = document.getElementById('voucherTypeFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            let filtered = fullData.filter(row => {
+                if (company && row.company !== company) return false;
+                if (account && row.account !== account) return false;
+                if (partyType && row.partyType !== partyType) return false;
+                if (party && row.party !== party) return false;
+                if (voucherType && row.voucherType !== voucherType) return false;
+                if (fromDate && row.date < fromDate) return false;
+                if (toDate && row.date > toDate) return false;
+                return true;
+            });
+
+            return filtered;
+        }
+
+        function updateFilterInfo() {
+            const filters = [];
+            const company = document.getElementById('companyFilter').value;
+            const account = document.getElementById('accountFilter').value;
+            const party = document.getElementById('partyFilter').value;
+            const voucherType = document.getElementById('voucherTypeFilter').value;
+            
+            if (company) filters.push(`Company: ${company}`);
+            if (account) filters.push(`Account: ${account}`);
+            if (party) filters.push(`Party: ${party}`);
+            if (voucherType) filters.push(`Voucher: ${voucherType}`);
+
+            const filterInfo = document.getElementById('filterInfo');
+            const filterInfoText = document.getElementById('filterInfoText');
+
+            if (filters.length > 0) {
+                filterInfo.style.display = 'flex';
+                filterInfoText.textContent = `Active Filters: ${filters.join(' • ')}`;
+            } else {
+                filterInfo.style.display = 'none';
+            }
+        }
+
+        function applyFilters() {
+            const tbody = document.getElementById('ledgerTable');
+            tbody.innerHTML = '';
+            
+            const filteredData = getFilteredData();
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">⚠️ No records found with the selected filters. Try adjusting your criteria.</td></tr>';
+                updateStats([], 0, 0, 0);
+                updateFilterInfo();
+                return;
+            }
+
+            let balance = 0;
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            filteredData.forEach((row, index) => {
+                balance += row.debit - row.credit;
+                totalDebit += row.debit;
+                totalCredit += row.credit;
+
+                const tr = document.createElement('tr');
+                tr.style.animationDelay = `${index * 0.03}s`;
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td><a href="#" class="account-link">${row.account}</a></td>
+                    <td><span class="voucher-badge">${row.voucherType}</span></td>
+                    <td><a href="#" class="account-link">${row.voucherNo}</a></td>
+                    <td class="party-name">${row.party || '-'}</td>
+                    <td class="amount debit">${row.debit > 0 ? formatCurrency(row.debit) : '-'}</td>
+                    <td class="amount credit">${row.credit > 0 ? formatCurrency(row.credit) : '-'}</td>
+                    <td class="amount">${formatCurrency(balance)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const balanceRow = document.createElement('tr');
+            balanceRow.className = 'balance-row';
+            balanceRow.innerHTML = `
+                <td colspan="5" style="text-align: right; font-size: 15px;">TOTAL</td>
+                <td class="amount debit">${formatCurrency(totalDebit)}</td>
+                <td class="amount credit">${formatCurrency(totalCredit)}</td>
+                <td class="amount">${formatCurrency(balance)}</td>
+            `;
+            tbody.appendChild(balanceRow);
+
+            updateStats(filteredData, totalDebit, totalCredit, balance);
+            updateFilterInfo();
+        }
+
+        function updateStats(data, totalDebit, totalCredit, balance) {
+            document.getElementById('totalEntries').textContent = data.length;
+            document.getElementById('totalDebit').textContent = '$' + formatCurrency(totalDebit);
+            document.getElementById('totalCredit').textContent = '$' + formatCurrency(totalCredit);
+            document.getElementById('netBalance').textContent = '$' + formatCurrency(balance);
+        }
+
+        function resetFilters() {
+            document.getElementById('companyFilter').value = '';
+            document.getElementById('accountFilter').value = '';
+            document.getElementById('partyTypeFilter').value = '';
+            document.getElementById('partyFilter').value = '';
+            document.getElementById('voucherTypeFilter').value = '';
+            document.getElementById('groupByFilter').value = '';
+            document.getElementById('financeBookFilter').value = '';
+            document.getElementById('includeDefaultFilter').value = '1';
+            document.getElementById('showCancelledFilter').value = '0';
+            document.getElementById('showOpeningFilter').value = '1';
+            document.getElementById('fromDate').value = '2025-01-01';
+            document.getElementById('toDate').value = '2025-01-31';
+            
+            applyFilters();
+        }
+
+        function exportReport() {
+            const filtered = getFilteredData();
+            
+            let csv = 'Date,Account,Voucher Type,Voucher No,Party,Debit,Credit,Balance\n';
+            let balance = 0;
+            
+            filtered.forEach(row => {
+                balance += row.debit - row.credit;
+                csv += `${row.date},"${row.account}","${row.voucherType}","${row.voucherNo}","${row.party}",${row.debit},${row.credit},${balance}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `general_ledger_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        window.onload = function() {
+            applyFilters();
+        };
+    </script>
+</body>
+</html>
