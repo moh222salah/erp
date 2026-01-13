@@ -468,21 +468,16 @@
                 ℹ️ <span id="filterInfoText"></span>
             </div>
 
-            
-<div class="button-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <button class="btn btn-primary" onclick="applyFilters()">
-        🔍 Generate Report
-    </button>
-    <button class="btn btn-secondary" onclick="exportReport()">
-        📥 Export to CSV
-    </button>
-    <button class="btn btn-danger" onclick="resetFilters()">
-        🔄 Reset Filters
-    </button>
-    <a href="statement.html" class="btn btn-success">
-        📖 View Statement
-    </a>
-
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    🔍 Generate Report
+                </button>
+                <button class="btn btn-secondary" onclick="exportReport()">
+                    📥 Export to CSV
+                </button>
+                <button class="btn btn-reset" onclick="resetFilters()">
+                    🔄 Reset Filters
+                </button>
             </div>
         </div>
 
@@ -527,7 +522,7 @@
 
         <div class="footer">
             Developed by Python/ERPNext/Frappe Cloud Developer | 
-            <a href=" https://moh222salah.github.io/cv " target="_blank">View on GitHub</a> | 
+            <a href="https://github.com" target="_blank">View on GitHub</a> | 
             Built with ❤️ for professional accounting systems
         </div>
     </div>
@@ -705,8 +700,6 @@
         window.onload = function() {
             applyFilters();
         };
-      </script>
-    
-      </body>
-    
-       </html>
+    </script>
+</body>
+</html>
